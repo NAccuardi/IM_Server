@@ -201,7 +201,7 @@ public class Server extends JFrame {
             output.writeObject(icon);
             output.flush();
 
-            showMessage("\n"+name+" ");
+            showMessage("\n"+name+" - ");
             showIcon(icon);
         } catch (Exception e){
             appendString("\n ERROR: IMAGE UNABLE TO BE SENT");
@@ -210,14 +210,14 @@ public class Server extends JFrame {
 
     private void showIcon(final ImageIcon icon) {
         SwingUtilities.invokeLater(
-                () -> ChatWindow.insertIcon(icon)
+                () -> ChatWindow.insertIcon(getScaledIcon(icon))
         );
     }
 
     private ImageIcon getScaledIcon(ImageIcon icon) {
-        double scaleFactor = 200 / icon.getIconHeight();
-        double width = (int)(scaleFactor * icon.getIconWidth());
-        Image scaledImage = icon.getImage().getScaledInstance((int)(width), 200, Image.SCALE_SMOOTH);
+        double scaleFactor = 200.0 / (float)icon.getIconHeight();
+        int width = (int)(scaleFactor * icon.getIconWidth());
+        Image scaledImage = icon.getImage().getScaledInstance(width, 200, Image.SCALE_SMOOTH);
         return new ImageIcon(scaledImage);
     }
 
