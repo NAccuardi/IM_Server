@@ -22,7 +22,7 @@ public class Server extends JFrame {
     //Server Constructor
     public Server() {
         super("SuperAwesomeNetworkProject");
-        userText = new JTextField();
+        userText = new JTextField("Please type in your message here, and then press \"Enter\" to send message.");
         userText.setEditable(false);
         userText.addActionListener
                 (
@@ -33,13 +33,17 @@ public class Server extends JFrame {
                             }
                         }
                 );//end of addActionListiner
-        add(userText, BorderLayout.NORTH);
+        add(userText, BorderLayout.SOUTH);
+
+
         ChatWindow = new JTextArea();
         add(new JScrollPane(ChatWindow));
         setSize(300, 150);
+        ChatWindow.setLineWrap(true);
         setVisible(true);
         ChatWindow.setEditable(false);
-    }//End of COnstructor
+        ChatWindow.setBackground(Color.YELLOW);
+    }//End of Constructor
 
     public void turnOnAndRunServer(){
         try{
