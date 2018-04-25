@@ -77,18 +77,22 @@ public class Server extends JFrame {
                 (
                     new ActionListener() {
                         public void actionPerformed(ActionEvent e) {
-                            openImageDialog();
+                            String imagePath = openImageDialog();
 
-                            BufferedImage img;
+                            int i = imagePath.lastIndexOf(".");
+                            String imageExtension = imagePath.substring(i+1);
+
+
+                            BufferedImage bufferedImg;
                             try {
-                                img = ImageIO.read(new File(imagePath));
+                                bufferedImg = ImageIO.read(new File(imagePath));
                             } catch (IOException ioe) {
                                 return;
                             }
 
-                            ImageIcon icon = new ImageIcon(img);
+                            ImageIcon icon = new ImageIcon(bufferedImg);
 //                            ChatWindow.insertIcon(icon);
-                            sendIcon(icon);
+                            sendImage(bufferedImg, imageExtension, icon);
 
 
 
@@ -184,8 +188,11 @@ public class Server extends JFrame {
         );
     }
 
-    private void sendIcon(ImageIcon icon) {
+    private void sendImage(BufferedImage img, String imgPathExtension, ImageIcon icon) {
         try {
+            output.writeObject(myEncryptor.encryptImage(img, imgPathExtension, clientKey));
+            output.flush();
+
             showMessage("\n"+name+" ");
             showIcon(icon);
         } catch (Exception e){
@@ -235,7 +242,7 @@ public class Server extends JFrame {
         }
     }
 
-    private void openImageDialog() {
+    private String openImageDialog() {
         JFrame frame = new JFrame();
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -246,11 +253,12 @@ public class Server extends JFrame {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             System.out.println("You chose to open this file: " + chooser.getSelectedFile().getName());
 
-            imagePath = chooser.getSelectedFile().getPath();
+            return chooser.getSelectedFile().getPath();
 
         } else if (returnVal == JFileChooser.CANCEL_OPTION) {
-            return;
+            return null;
         }
+        return null;
     }
 
 }//end of class
