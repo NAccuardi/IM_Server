@@ -22,7 +22,6 @@ public class Server extends JFrame {
     private JTextPane ChatWindow;//where history will appear.
 
     private JButton imageButton;
-    private String imagePath;
     private String message = "";
 
     private ObjectOutputStream output;
@@ -30,7 +29,6 @@ public class Server extends JFrame {
     private ServerSocket server;
     private Socket connection;
     private String name;
-    private String clientName;
 
     /////////private BufferedImage
 
@@ -92,7 +90,6 @@ public class Server extends JFrame {
                             }
 
                             ImageIcon icon = new ImageIcon(bufferedImg);
-//                            ChatWindow.insertIcon(icon);
                             sendImage(bufferedImg, imageExtension, icon);
 
 
@@ -114,7 +111,7 @@ public class Server extends JFrame {
                     setupInputAndOutputStreamsBetweenComputers();
                     whileConnectedDoChat();
                 }catch (EOFException eofException){//signals end of connection. When a user closes the program this will be displayed
-                    showMessage("\n Server ended the connection.");
+                    showMessage("\n i an RightServer ended the connection.");
                 }finally {
                     closeProgramDown();
                 }
@@ -151,10 +148,10 @@ public class Server extends JFrame {
         do{//this is where the magic happens
             try{
                 boolean isImage = input.readBoolean();
-                BufferedImage image;
+                ImageIcon image;
                 if (isImage) {
-                    image = myEncryptor.getDecryptedImageIcon((byte[])input.readObject());
-                    showIcon(new ImageIcon(image));
+                    image = (ImageIcon) input.readObject();
+                    showIcon(image);
                 }
                 else{
                     message = myEncryptor.getDecryptedMessage((byte[]) input.readObject());
@@ -201,7 +198,7 @@ public class Server extends JFrame {
     private void sendImage(BufferedImage img, String imgPathExtension, ImageIcon icon) {
         try {
             output.writeBoolean(true);
-            output.writeObject(myEncryptor.encryptImage(img, imgPathExtension, clientKey));
+            output.writeObject(icon);
             output.flush();
 
             showMessage("\n"+name+" ");
@@ -215,7 +212,13 @@ public class Server extends JFrame {
         SwingUtilities.invokeLater(
                 () -> ChatWindow.insertIcon(icon)
         );
+    }
 
+    private ImageIcon getScaledIcon(ImageIcon icon) {
+        double scaleFactor = 200 / icon.getIconHeight();
+        double width = (int)(scaleFactor * icon.getIconWidth());
+        Image scaledImage = icon.getImage().getScaledInstance((int)(width), 200, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
     }
 
     //prevent typing if there is no connection.
