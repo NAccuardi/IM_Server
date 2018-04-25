@@ -23,6 +23,7 @@ public class Server extends JFrame {
 
     private JButton imageButton;
     private String imagePath;
+    private String message = "";
 
     private ObjectOutputStream output;
     private ObjectInputStream input;
@@ -149,10 +150,18 @@ public class Server extends JFrame {
 
         do{//this is where the magic happens
             try{
-                payload = myEncryptor.getDecryptedMessage((byte[])input.readObject());//force the
-                showMessage("\n" + payload);//Display Message on a new line
-            }catch (ClassNotFoundException classNotFoundException){
-                showMessage("\n Stop trying to break this with odd characters.");
+                boolean isImage = input.readBoolean();
+                BufferedImage image;
+                if (isImage) {
+                    image = myEncryptor.getDecryptedImageIcon((byte[])input.readObject());
+                    showIcon(new ImageIcon(image));
+                }
+                else{
+                    message = myEncryptor.getDecryptedMessage((byte[]) input.readObject());
+                    showMessage("\n" + message);
+                }
+            } catch (ClassNotFoundException classNotFoundException){
+                showMessage("\n Unknown Object Type.");
             }
         }while (!payload.equals("CLIENT - END"));
     }
@@ -169,14 +178,15 @@ public class Server extends JFrame {
         }
     }
 
-    private void sendMessage(String payload){//sends message to the client
-        //Add a second parameter to say who sent the payload.
-        try{
+    //this will handle sending messages to the client.
+    private void sendMessage(String payload){
+        try {
+            output.writeBoolean(false);
             output.writeObject(myEncryptor.encryptString(name + " - " + payload, clientKey));
             output.flush();
-            showMessage("\n"+name+" -"+payload);
-        }catch(IOException ioException){
-            appendString("\n ERROR: MESSAGE UNABLE TO BE SENT");
+            showMessage("\n" + name + " - "+ payload);
+        } catch (IOException ioException){
+            appendString("\n An error has occured while send a message");
         }
     }
 
@@ -190,6 +200,7 @@ public class Server extends JFrame {
 
     private void sendImage(BufferedImage img, String imgPathExtension, ImageIcon icon) {
         try {
+            output.writeBoolean(true);
             output.writeObject(myEncryptor.encryptImage(img, imgPathExtension, clientKey));
             output.flush();
 
