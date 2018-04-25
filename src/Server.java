@@ -7,8 +7,9 @@ import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import javax.swing.*;
-
 
 public class Server extends JFrame {
     //Variable Declaration
@@ -21,9 +22,19 @@ public class Server extends JFrame {
     private String name;
     private String clientName;
 
+    private PublicKey myPublicKey;
+    private PrivateKey myPrivateKey;
+    private Encryptor myEncryptor = new Encryptor();
+
+    private PublicKey clientKey;
+
     //Server Constructor
     public Server() {
         super("SuperAwesomeNetworkProject");
+
+        myPublicKey = myEncryptor.getPublicKey();
+        myPrivateKey = myEncryptor.getPrivateKey();
+
         name = JOptionPane.showInputDialog("Enter your screen name: ");
         userText = new JTextField();
         userText.setEditable(false);
@@ -77,6 +88,7 @@ public class Server extends JFrame {
         output = new ObjectOutputStream(connection.getOutputStream());//lets you send things to the other person
         output.flush();//makes sure the output stream is clear after sending.
         input = new ObjectInputStream(connection.getInputStream());//Allows you to recieve messeges.
+        exchangeKeys();
         showMessage("\n Streams are now setup. You can begin your conversation now.");
     }
 
@@ -88,7 +100,7 @@ public class Server extends JFrame {
 
         do{//this is where the magic happens
             try{
-                payload = (String)input.readObject();//force the
+                payload = myEncryptor.getDecryptedMessage((byte[])input.readObject());//force the
                 showMessage("\n" + payload);//Display Message on a new line
             }catch (ClassNotFoundException classNotFoundException){
                 showMessage("\n Stop trying to break this with odd characters.");
@@ -109,9 +121,9 @@ public class Server extends JFrame {
     }
 
     private void sendMessage(String payload){//sends message to the client
-        //Add a second paremeter to say who sent the payload.
+        //Add a second parameter to say who sent the payload.
         try{
-            output.writeObject(name + " - " + payload);
+            output.writeObject(myEncryptor.encryptString(name + " - " + payload, clientKey));
             output.flush();
             showMessage("\n"+name+" -"+payload);
         }catch(IOException ioException){
@@ -131,6 +143,20 @@ public class Server extends JFrame {
         SwingUtilities.invokeLater(//uses a thread to add a single line of code the end of the chatwindow
                 () -> userText.setEditable(bool)
         );
+    }
+
+    private void exchangeKeys() throws IOException{
+        Object o;
+        try {
+            o = input.readObject();
+        }
+        catch (ClassNotFoundException e) {
+            return;
+        }
+        if (o instanceof PublicKey) {
+            clientKey = (PublicKey)o;
+        }
+        output.writeObject(myPublicKey);
     }
 
 }//end of class
