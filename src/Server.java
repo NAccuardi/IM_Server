@@ -3,24 +3,35 @@
  * Created by Robot Laptop on 4/24/2018.
  */
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
 
 public class Server extends JFrame {
     //Variable Declaration
     private JTextField userText;//Where user can type
-    private JTextArea ChatWindow;//where history will appear.
+    private JTextPane ChatWindow;//where history will appear.
+
+    private JButton imageButton;
+    private String imagePath;
+
     private ObjectOutputStream output;
     private ObjectInputStream input;
     private ServerSocket server;
     private Socket connection;
     private String name;
     private String clientName;
+
+    /////////private BufferedImage
 
     private PublicKey myPublicKey;
     private PrivateKey myPrivateKey;
@@ -52,14 +63,59 @@ public class Server extends JFrame {
         add(userText, BorderLayout.SOUTH);
 
         //place chat box that at the top of the screen
-        ChatWindow = new JTextArea();
+        ChatWindow = new JTextPane();
         add(new JScrollPane(ChatWindow));
         setSize(300, 150);
         setVisible(true);
-        ChatWindow.setLineWrap(true);
         ChatWindow.setEditable(false);
-        ChatWindow.setBackground(Color.YELLOW);
+
+        //place add-image button
+        imageButton = new JButton();
+        setVisible(true);
+        imageButton.setEnabled(false);
+        imageButton.addActionListener
+                (
+                    new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            openImageDialog();
+
+                            BufferedImage img;
+                            try {
+                                img = ImageIO.read(new File(imagePath));
+                            } catch (IOException ioe) {
+                                return;
+                            }
+
+                            ImageIcon icon = new ImageIcon(img);
+                            ChatWindow.insertIcon(icon);
+
+                        }
+                    }
+                );
+        add(imageButton, BorderLayout.EAST);
+
     }//End of COnstructor
+
+    private void openImageDialog() {
+        JFrame frame = new JFrame();
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "JPG, JPEG, & PNG images", "jpg", "jpeg", "png");
+        chooser.setFileFilter(filter);
+
+        int returnVal = chooser.showOpenDialog(frame);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            System.out.println("You chose to open this file: " + chooser.getSelectedFile().getName());
+
+            imagePath = chooser.getSelectedFile().getPath();
+
+        } else if (returnVal == JFileChooser.CANCEL_OPTION) {
+            return;
+        }
+    }
+
+
+
 
     public void turnOnAndRunServer(){
         try{
@@ -104,6 +160,7 @@ public class Server extends JFrame {
         sendMessage(payload);
         ableToType(true);
 
+
         do{//this is where the magic happens
             try{
                 payload = myEncryptor.getDecryptedMessage((byte[])input.readObject());//force the
@@ -133,7 +190,7 @@ public class Server extends JFrame {
             output.flush();
             showMessage("\n"+name+" -"+payload);
         }catch(IOException ioException){
-            ChatWindow.append("\n ERROR: MESSAGE UNABLE TO BE SENT");
+            appendString("\n ERROR: MESSAGE UNABLE TO BE SENT");
         }
     }
 
@@ -141,14 +198,19 @@ public class Server extends JFrame {
     private void showMessage(final String payload){
         //Change the text that appears in the chat winoow. We only want to update the window
         SwingUtilities.invokeLater(//uses a thread to add a single line of code the end of the chatwindow
-                () -> ChatWindow.append(payload)
+                () -> appendString(payload)
         );
     }
     //prevent typing if there is no connection.
     private void ableToType(final boolean bool){
         SwingUtilities.invokeLater(//uses a thread to add a single line of code the end of the chatwindow
-                () -> userText.setEditable(bool)
+                () -> setUIEnabled(bool)
         );
+    }
+
+    private void setUIEnabled(boolean enabled) {
+        imageButton.setEnabled(enabled);
+        userText.setEditable(enabled);
     }
 
     private void exchangeKeys() throws IOException{
@@ -163,6 +225,15 @@ public class Server extends JFrame {
             clientKey = (PublicKey)o;
         }
         output.writeObject(myPublicKey);
+    }
+
+    private void appendString(String str) {
+        StyledDocument doc = (StyledDocument) ChatWindow.getDocument();
+        try {
+            doc.insertString(doc.getLength(), str, null);
+        } catch (BadLocationException e) {
+            // uh oh.
+        }
     }
 
 }//end of class
