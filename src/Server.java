@@ -18,10 +18,13 @@ public class Server extends JFrame {
     private ObjectInputStream input;
     private ServerSocket server;
     private Socket connection;
+    private String name;
+    private String clientName;
 
     //Server Constructor
     public Server() {
         super("SuperAwesomeNetworkProject");
+        name = JOptionPane.showInputDialog("Enter your screen name: ");
         userText = new JTextField();
         userText.setEditable(false);
         userText.addActionListener
@@ -67,6 +70,7 @@ public class Server extends JFrame {
         showMessage("Waiting for someone to join you. \n");
         connection = server.accept();//keeps looking for someone to connect, when they o we want to store it.
         showMessage("Now connected to "+connection.getInetAddress().getHostName());//shows the IPAddress of who you connected to.
+        System.out.println(connection.getInetAddress().getHostName());
     }
 
     private void setupInputAndOutputStreamsBetweenComputers()throws IOException{
@@ -107,9 +111,9 @@ public class Server extends JFrame {
     private void sendMessage(String payload){//sends message to the client
         //Add a second paremeter to say who sent the payload.
         try{
-            output.writeObject("Server - " + payload);
+            output.writeObject(name + " - " + payload);
             output.flush();
-            showMessage("\nSERVER -"+payload);
+            showMessage("\n"+name+" -"+payload);
         }catch(IOException ioException){
             ChatWindow.append("\n ERROR: MESSAGE UNABLE TO BE SENT");
         }
