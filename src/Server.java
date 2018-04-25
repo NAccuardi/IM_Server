@@ -36,7 +36,9 @@ public class Server extends JFrame {
         myPrivateKey = myEncryptor.getPrivateKey();
 
         name = JOptionPane.showInputDialog("Enter your screen name: ");
-        userText = new JTextField();
+
+        //place user input text box at bottom of screen
+        userText = new JTextField("Please type in your message here, and then press \"Enter\" to send message.");
         userText.setEditable(false);
         userText.addActionListener
                 (
@@ -47,12 +49,16 @@ public class Server extends JFrame {
                             }
                         }
                 );//end of addActionListiner
-        add(userText, BorderLayout.NORTH);
+        add(userText, BorderLayout.SOUTH);
+
+        //place chat box that at the top of the screen
         ChatWindow = new JTextArea();
         add(new JScrollPane(ChatWindow));
         setSize(300, 150);
         setVisible(true);
+        ChatWindow.setLineWrap(true);
         ChatWindow.setEditable(false);
+        ChatWindow.setBackground(Color.YELLOW);
     }//End of COnstructor
 
     public void turnOnAndRunServer(){
