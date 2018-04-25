@@ -49,7 +49,7 @@ public class Server extends JFrame {
         name = JOptionPane.showInputDialog("Enter your screen name: ");
 
         //place user input text box at bottom of screen
-        userText = new JTextField("Please type in your message here, and then press \"Enter\" to send message.");
+        userText = new JTextField();
         userText.setEditable(false);
         userText.addActionListener
                 (
@@ -87,7 +87,10 @@ public class Server extends JFrame {
                             }
 
                             ImageIcon icon = new ImageIcon(img);
-                            ChatWindow.insertIcon(icon);
+//                            ChatWindow.insertIcon(icon);
+                            sendIcon(icon);
+                            
+
 
                         }
                     }
@@ -95,27 +98,6 @@ public class Server extends JFrame {
         add(imageButton, BorderLayout.EAST);
 
     }//End of COnstructor
-
-    private void openImageDialog() {
-        JFrame frame = new JFrame();
-        JFileChooser chooser = new JFileChooser();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "JPG, JPEG, & PNG images", "jpg", "jpeg", "png");
-        chooser.setFileFilter(filter);
-
-        int returnVal = chooser.showOpenDialog(frame);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            System.out.println("You chose to open this file: " + chooser.getSelectedFile().getName());
-
-            imagePath = chooser.getSelectedFile().getPath();
-
-        } else if (returnVal == JFileChooser.CANCEL_OPTION) {
-            return;
-        }
-    }
-
-
-
 
     public void turnOnAndRunServer(){
         try{
@@ -201,6 +183,23 @@ public class Server extends JFrame {
                 () -> appendString(payload)
         );
     }
+
+    private void sendIcon(ImageIcon icon) {
+        try {
+            showMessage("\n"+name+" ");
+            showIcon(icon);
+        } catch (Exception e){
+            appendString("\n ERROR: IMAGE UNABLE TO BE SENT");
+        }
+    }
+
+    private void showIcon(final ImageIcon icon) {
+        SwingUtilities.invokeLater(
+                () -> ChatWindow.insertIcon(icon)
+        );
+
+    }
+
     //prevent typing if there is no connection.
     private void ableToType(final boolean bool){
         SwingUtilities.invokeLater(//uses a thread to add a single line of code the end of the chatwindow
@@ -233,6 +232,24 @@ public class Server extends JFrame {
             doc.insertString(doc.getLength(), str, null);
         } catch (BadLocationException e) {
             // uh oh.
+        }
+    }
+
+    private void openImageDialog() {
+        JFrame frame = new JFrame();
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "JPG, JPEG, & PNG images", "jpg", "jpeg", "png");
+        chooser.setFileFilter(filter);
+
+        int returnVal = chooser.showOpenDialog(frame);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            System.out.println("You chose to open this file: " + chooser.getSelectedFile().getName());
+
+            imagePath = chooser.getSelectedFile().getPath();
+
+        } else if (returnVal == JFileChooser.CANCEL_OPTION) {
+            return;
         }
     }
 
