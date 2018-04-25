@@ -89,7 +89,7 @@ public class Server extends JFrame {
                             ImageIcon icon = new ImageIcon(img);
 //                            ChatWindow.insertIcon(icon);
                             sendIcon(icon);
-                            
+
 
 
                         }
