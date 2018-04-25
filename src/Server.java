@@ -37,6 +37,7 @@ public class Server extends JFrame {
     private Encryptor myEncryptor = new Encryptor();
 
     private PublicKey clientKey;
+    private String clientName;
 
     //Server Constructor
     public Server() {
@@ -64,7 +65,7 @@ public class Server extends JFrame {
         //place chat box that at the top of the screen
         ChatWindow = new JTextPane();
         add(new JScrollPane(ChatWindow));
-        setSize(300, 150);
+        setSize(500, 500);
         setVisible(true);
         ChatWindow.setEditable(false);
 
@@ -126,8 +127,18 @@ public class Server extends JFrame {
     private void waitForSomeoneToConnect() throws IOException{
         showMessage("Waiting for someone to join you. \n");
         connection = server.accept();//keeps looking for someone to connect, when they o we want to store it.
-        showMessage("Now connected to "+connection.getInetAddress().getHostName());//shows the IPAddress of who you connected to.
-        System.out.println(connection.getInetAddress().getHostName());
+
+//        output.write(name.getBytes());
+//        try {
+//            clientName = (String)input.readObject();
+//        }
+//        catch (ClassNotFoundException e) {
+//            System.out.println(e.getStackTrace());
+//        }
+
+        clientName = "blah";
+
+        showMessage("Now connected to " + connection.getInetAddress().getHostName());//shows the IPAddress of who you connected to.
     }
 
     private void setupInputAndOutputStreamsBetweenComputers()throws IOException{
@@ -138,7 +149,7 @@ public class Server extends JFrame {
         showMessage("\n Streams are now setup. You can begin your conversation now.");
     }
 
-    //during converation this will be what is running.
+    //during conversation this will be what is running.
     private void whileConnectedDoChat()throws IOException{
         String payload = "You are now connected";
         sendMessage(payload);
@@ -151,6 +162,7 @@ public class Server extends JFrame {
                 ImageIcon image;
                 if (isImage) {
                     image = (ImageIcon) input.readObject();
+                    showMessage("\n" + clientName + " - ");
                     showIcon(image);
                 }
                 else{
@@ -189,7 +201,7 @@ public class Server extends JFrame {
 
     //updates ONLY the chatWindow
     private void showMessage(final String payload){
-        //Change the text that appears in the chat winoow. We only want to update the window
+        //Change the text that appears in the chat window. We only want to update the window
         SwingUtilities.invokeLater(//uses a thread to add a single line of code the end of the chatwindow
                 () -> appendString(payload)
         );
