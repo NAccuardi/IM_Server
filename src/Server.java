@@ -23,7 +23,7 @@ public class Server extends JFrame {
     private Encryptor myEncryptor = new Encryptor();
 
     private PublicKey clientKey;
-    private String clientName;
+    private String clientName = "Client";
 
     //Server Constructor
     public Server() {
@@ -51,6 +51,7 @@ public class Server extends JFrame {
         //place add-image button
         imageButton = new JButton();
         setVisible(true);
+        imageButton.setText("SEND IMAGE");
         imageButton.setEnabled(false);
         imageButton.addActionListener(
                 e -> {
@@ -114,6 +115,8 @@ public class Server extends JFrame {
                 ImageIcon image;
                 if (isImage) {
                     image = (ImageIcon) input.readObject();
+
+                    // send Client's message with an image
                     showMessage("\n" + clientName +  " - ");
                     showIconOnChatWindow(image);
                 }
@@ -238,4 +241,5 @@ public class Server extends JFrame {
         }
         return null;
     }
+
 }//end of class
