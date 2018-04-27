@@ -23,6 +23,7 @@ public class Server extends JFrame {
     private Encryptor myEncryptor = new Encryptor();
 
     private PublicKey clientKey;
+    private String clientName;
 
     //Server Constructor
     public Server() {
@@ -43,7 +44,7 @@ public class Server extends JFrame {
         //place chat box that at the top of the screen
         ChatWindow = new JTextPane();
         add(new JScrollPane(ChatWindow));
-        setSize(300, 150);
+        setSize(500, 500);
         setVisible(true);
         ChatWindow.setEditable(false);
 
@@ -89,14 +90,14 @@ public class Server extends JFrame {
     private void waitForSomeoneToConnect() throws IOException{
         showMessage("Waiting for someone to join you. \n");
         connection = server.accept();//keeps looking for someone to connect, when they o we want to store it.
-        showMessage("Now connected to "+connection.getInetAddress().getHostName());//shows the IPAddress of who you connected to.
+        showMessage("Now connected to " + connection.getInetAddress().getHostName());//shows the IPAddress of who you connected to.
         System.out.println(connection.getInetAddress().getHostName());
     }
 
     private void setupInputAndOutputStreamsBetweenComputers()throws IOException{
         output = new ObjectOutputStream(connection.getOutputStream());//lets you send things to the other person
         output.flush();//makes sure the output stream is clear after sending.
-        input = new ObjectInputStream(connection.getInputStream());//Allows you to recieve messeges.
+        input = new ObjectInputStream(connection.getInputStream());//Allows you to receive messages.
         exchangeKeys();
         showMessage("\n Streams are now setup. You can begin your conversation now.");
     }
@@ -113,6 +114,7 @@ public class Server extends JFrame {
                 ImageIcon image;
                 if (isImage) {
                     image = (ImageIcon) input.readObject();
+                    showMessage("\n" + clientName +  " - ");
                     showIconOnChatWindow(image);
                 }
                 else {
@@ -143,6 +145,7 @@ public class Server extends JFrame {
             output.writeBoolean(false);
             output.writeObject(myEncryptor.encryptString(name + " - " + payload, clientKey));
             output.flush();
+
             showMessage("\n" + name + " - "+ payload);
         } catch (IOException ioException) {
             appendString("\n An error has occurred while send a message");
@@ -162,6 +165,7 @@ public class Server extends JFrame {
             output.writeBoolean(true);
             output.writeObject(imageToSend);
             output.flush();
+
             showMessage("\n" + name + " - ");
             showIconOnChatWindow(imageToSend);
         }
