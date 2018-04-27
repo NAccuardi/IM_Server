@@ -8,24 +8,36 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 
+/**
+ * Class: Server
+ * Code for the server to function properly.
+ * @author Nick Accuardi
+ * @author Alex Hadi
+ * @author Mitchell Nguyen
+ * @author Patrick Maloney
+ */
 public class Server extends JFrame {
-    //Variable Declaration
-    private JTextField userText;//Where user can type
-    private JTextPane ChatWindow;//where history will appear.
+    private JTextField userText;  // Where user can type.
+    private JTextPane ChatWindow; // Where history will appear.
 
-    private JButton imageButton;
+    private JButton imageButton; // Button to send images.
+
+    // Streams to send data to and from client.
     private ObjectOutputStream output;
     private ObjectInputStream input;
-    private ServerSocket server;
-    private Socket connection;
+
+    private ServerSocket server; // ServerSocket to set up connection.
+    private Socket connection; // Socket to establish connection.
     private String name;
 
     private Encryptor myEncryptor = new Encryptor();
 
     private PublicKey clientKey;
-    private String clientName = "Client";
 
-    //Server Constructor
+    /**
+     * Constructor: Server
+     * Initializes the server GUI.
+     */
     public Server() {
         super("SuperAwesomeNetworkProject");
 
@@ -56,20 +68,20 @@ public class Server extends JFrame {
         imageButton.addActionListener(
                 e -> {
                     String imagePath = openImageDialogAndReturnPath();
+                    if (imagePath == null) return;
                     try {
                         sendImage(new ImageIcon(ImageIO.read(new File(imagePath))));
                     } catch (IOException ioe) {
-                        System.out.println("There was an IO Exception: " + ioe.getStackTrace());
+                        ioe.printStackTrace();
                     }
                 });
         add(imageButton, BorderLayout.EAST);
-
-    }//End of Constructor
+    }
 
     public void turnOnAndRunServer(){
-        try{
+        try {
             server = new ServerSocket(6789,20);// where the message is going, how many people wait to join.
-            while (true){//this needs to be running for our server to constanlty do things.
+            while (true){//this needs to be running for our server to constantly do things.
                 //bulk of server program goes here.
                 try{
                     waitForSomeoneToConnect();
@@ -83,8 +95,8 @@ public class Server extends JFrame {
             }
         }catch (IOException ioException){
             ioException.printStackTrace();
-        }//end trycatch
-    }//turnOnServer()
+        }
+    }
 
 
     //Waits for a connection to happen, then lets you know the IP of who you connected too.
@@ -103,7 +115,7 @@ public class Server extends JFrame {
         showMessage("\n Streams are now setup. You can begin your conversation now.");
     }
 
-    //during converation this will be what is running.
+    //during conversation this will be what is running.
     private void whileConnectedDoChat() throws IOException{
         String payload = "You are now connected";
         sendMessage(payload);
@@ -117,7 +129,7 @@ public class Server extends JFrame {
                     image = (ImageIcon) input.readObject();
 
                     // send Client's message with an image
-                    showMessage("\n" + clientName +  " - ");
+                    showMessage("\n" + "Client" +  " - ");
                     showIconOnChatWindow(image);
                 }
                 else {
@@ -183,26 +195,46 @@ public class Server extends JFrame {
         );
     }
 
+    /**
+     * Method: getScaledIcon
+     * Helper method to get a scaled version of an image.
+     * @param icon The ImageIcon object to scale.
+     * @return The scaled ImageIcon.
+     */
     private ImageIcon getScaledIcon(ImageIcon icon) {
         double scaleFactor = 200.0 / icon.getIconHeight();
         Image scaledImage = icon.getImage().getScaledInstance((int)(scaleFactor * icon.getIconWidth()), 200, Image.SCALE_SMOOTH);
         return new ImageIcon(scaledImage);
     }
 
-    //prevent typing if there is no connection.
+    /**
+     * Method: ableToType
+     * Prevent typing if there is no connection
+     * @param bool Can type (true), otherwise false.
+     */
     private void ableToType(final boolean bool) {
         SwingUtilities.invokeLater(//uses a thread to add a single line of code the end of the chat window
                 () -> enableOrDisableUIElements(bool)
         );
     }
 
+    /**
+     * Method: enableOrDisableUIElements
+     * Helper method to enable/disable UI elements.
+     * @param enabled Enable them (true), otherwise false.
+     */
     private void enableOrDisableUIElements(boolean enabled) {
         imageButton.setEnabled(enabled);
         userText.setEditable(enabled);
     }
 
+    /**
+     * Method: exchangeKeys
+     * PublicKeys are exchanged between client and server.
+     */
     private void exchangeKeys() {
         try {
+            // Server reads the key first.
             Object keyObject = input.readObject();
             if (keyObject instanceof PublicKey) {
                 clientKey = (PublicKey) keyObject;
@@ -210,27 +242,42 @@ public class Server extends JFrame {
             output.writeObject(myEncryptor.getPublicKey());
         }
         catch (IOException | ClassNotFoundException e) {
-            System.out.println("Exception reading key object: " + e.getStackTrace());
+            e.printStackTrace();
         }
     }
 
+    /**
+     * Method: appendString
+     * Adds a given string to the chat window
+     * @param str The string to append.
+     */
     private void appendString(String str) {
+        // Need StyledDocument to insert the string.
         StyledDocument styledDocument = ChatWindow.getStyledDocument();
         try {
             styledDocument.insertString(styledDocument.getLength(), str, null);
         }
         catch (BadLocationException e) {
-            System.out.println("Exception appending string: " + e.getStackTrace());
+            e.printStackTrace();
         }
     }
 
+    /**
+     * Method: openImageDialogAndReturnPath
+     * Opens a JFileChooser and returns the path to the image.
+     * @return The string that represents the image path.
+     */
     private String openImageDialogAndReturnPath() {
+        // Frame and file chooser are instantiated.
         JFrame imageDialogFrame = new JFrame();
         JFileChooser imageChooser = new JFileChooser();
+
+        // Filter out only images.
         FileNameExtensionFilter imageFilter = new FileNameExtensionFilter(
                 "JPG, JPEG, & PNG images", "jpg", "jpeg", "png");
         imageChooser.setFileFilter(imageFilter);
 
+        // Wait for either approval from user or cancel operation.
         switch (imageChooser.showOpenDialog(imageDialogFrame)) {
             case JFileChooser.APPROVE_OPTION:
                 System.out.println("This image opened: " + imageChooser.getSelectedFile().getName());
@@ -241,5 +288,4 @@ public class Server extends JFrame {
         }
         return null;
     }
-
-}//end of class
+}
